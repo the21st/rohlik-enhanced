@@ -1,3 +1,9 @@
+(() => {
+  console.log("Rohlik Enhanced loading...");
+  console.log("Current URL:", window.location.href);
+  console.log("Document readyState:", document.readyState);
+})();
+
 console.log("Rohlik Enhanced loaded");
 
 const dbName = "nutriScoreDB";
@@ -45,7 +51,7 @@ async function fetchNutritionData(productId) {
     fats: values.fats?.amount ?? null,
     saturatedFats: values.saturatedFats?.amount ?? null,
     fiber: values.fiber?.amount ?? null,
-    sodium: values.salt?.amount ? values.salt.amount * 400 : null, // Convert salt to sodium
+    salt: values.salt?.amount ?? null,
   };
 }
 
@@ -120,7 +126,7 @@ async function fetchNutriScore(productId) {
   }
 }
 
-export function calculateNutriScore(nutritionData) {
+function calculateNutriScore(nutritionData) {
   // Return null if sugars are nullish since we can't calculate accurate score
   if (nutritionData.sugars == null) {
     return null;
@@ -409,7 +415,7 @@ function calculateScore(nutrientValues) {
     : badScore - goodScore;
 }
 
-export function calculateNutriScore2022({
+function calculateNutriScore2022({
   energyKJ, // in kJ per 100g
   sugars, // in g per 100g
   saturatedFats, // in g per 100g

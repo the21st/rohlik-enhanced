@@ -6,10 +6,9 @@ A browser extension that enhances the Rohlik.cz shopping experience by displayin
 
 ```
 rohlik-enhanced/
-├── extension/           # Browser extension files
-│   ├── manifest.json   # Extension configuration
-│   ├── content.js      # Content script that runs on rohlik.cz
-│   └── background.js   # Background script for extension
+├── manifest.json   # Extension configuration
+├── content.js      # Content script that runs on rohlik.cz
+└── background.js   # Background script for extension
 ```
 
 ## Development Setup

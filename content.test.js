@@ -177,4 +177,23 @@ describe("calculateNutriScore", () => {
     });
     // expect(score2022).toBe("B");
   });
+
+  it("correctly calculates Nutri-Score for", () => {
+    const nutritionData = {
+      energyKJ: 1280,
+      fats: 30,
+      saturatedFats: 14,
+      carbs: 1.8,
+      sugars: 1.5,
+      proteins: 8.2,
+      salt: 0.55,
+      fiber: 0,
+    };
+
+    const score2022 = calculateNutriScore2022({
+      ...nutritionData,
+      isCheese: true,
+    });
+    expect(score2022).toBe("D");
+  });
 });

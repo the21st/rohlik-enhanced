@@ -14,8 +14,7 @@
     "storage"
   ],
   "host_permissions": [
-    "https://www.rohlik.cz/*",
-    "https://rohlik-enhanced.onrender.com/*"
+    "https://www.rohlik.cz/*"
   ],
   "web_accessible_resources": [{
     "resources": ["config.json"],
