@@ -26,49 +26,9 @@ const initDB = () => {
 // Initialize DB when script loads
 initDB().catch(console.error);
 
-async function fetchNutriScore(productId) {
-  try {
-    // Check cache first
-    if (db) {
-      const cached = await new Promise((resolve) => {
-        const transaction = db.transaction(storeName, "readonly");
-        const store = transaction.objectStore(storeName);
-        const request = store.get(productId);
-
-        request.onsuccess = () => resolve(request.result);
-        request.onerror = () => resolve(null);
-      });
-
-      if (cached || cached === null) {
-        return cached?.score ?? null;
-      }
-    }
-
-    const data = await fetchNutritionData(productId);
-    const score = calculateNutriScore(data);
-
-    // Cache the result if we have a valid score
-    if (db) {
-      const transaction = db.transaction(storeName, "readwrite");
-      const store = transaction.objectStore(storeName);
-      store.put({ id: productId, score, timestamp: Date.now() });
-    }
-
-    return score;
-  } catch (error) {
-    console.error("Error fetching nutri-score:", error);
-    return null;
-  }
-}
-
-export async function fetchNutritionData(productId) {
+async function fetchNutritionData(productId) {
   const url = `https://www.rohlik.cz/api/v1/products/${productId}/composition`;
   const response = await fetch(url);
-  // TODO do we need this?:
-  // {
-  //   referrerPolicy: "no-referrer",
-  //   credentials: "same-origin",
-  // }
   const data = await response.json();
 
   if (!data.nutritionalValues?.[0]?.values) {
@@ -89,7 +49,77 @@ export async function fetchNutritionData(productId) {
   };
 }
 
-// Calculate the NutriScore for given nutrition data
+async function fetchCategoryData(productId) {
+  const url = `https://www.rohlik.cz/api/v1/products/${productId}/categories`;
+  const response = await fetch(url);
+  const data = await response.json();
+  return data?.categories || [];
+}
+
+async function fetchNutriScore(productId) {
+  try {
+    // Check cache first
+    if (db) {
+      const cached = await new Promise((resolve) => {
+        const transaction = db.transaction(storeName, "readonly");
+        const store = transaction.objectStore(storeName);
+        const request = store.get(productId);
+
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => resolve(null);
+      });
+
+      if (cached || cached === null) {
+        return cached?.score ?? null;
+      }
+    }
+
+    const [data, categories] = await Promise.all([
+      fetchNutritionData(productId),
+      fetchCategoryData(productId),
+    ]);
+
+    if (!data) return null;
+
+    // Determine product category flags based on category names
+    const isCheese = categories.some((cat) =>
+      cat.name.toLowerCase().includes("sýr")
+    );
+    const isRedMeat = categories.some(
+      (cat) =>
+        cat.name.toLowerCase().includes("hověz") ||
+        cat.name.toLowerCase().includes("vepřov")
+    );
+    const isBeverage = categories.some((cat) =>
+      cat.name.toLowerCase().includes("nápoje")
+    );
+    const isFatsOils = categories.some((cat) =>
+      cat.name.toLowerCase().includes("oleje")
+    );
+
+    const score = calculateNutriScore2022({
+      ...data,
+      isCheese,
+      isRedMeat,
+      isBeverage,
+      isFatsOils,
+      fruitVegLegumesPercent: 0, // We don't have this data
+    });
+
+    // Cache the result if we have a valid score
+    if (db) {
+      const transaction = db.transaction(storeName, "readwrite");
+      const store = transaction.objectStore(storeName);
+      store.put({ id: productId, score, timestamp: Date.now() });
+    }
+
+    return score;
+  } catch (error) {
+    console.error("Error fetching nutri-score:", error);
+    return null;
+  }
+}
+
 export function calculateNutriScore(nutritionData) {
   // Return null if sugars are nullish since we can't calculate accurate score
   if (nutritionData.sugars == null) {
