@@ -1,9 +1,3 @@
-(() => {
-  console.log("Rohlik Enhanced loading...");
-  console.log("Current URL:", window.location.href);
-  console.log("Document readyState:", document.readyState);
-})();
-
 console.log("Rohlik Enhanced loaded");
 
 const dbName = "nutriScoreDB";

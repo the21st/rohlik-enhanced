@@ -1,29 +1,24 @@
 {
   "manifest_version": 3,
   "name": "Rohlik Enhanced",
-  "version": "1.0.1",
   "description": "Displays Nutri-Score for grocery products",
+  "version": "1.1.0",
   "browser_specific_settings": {
     "gecko": {
       "id": "{3d2f5053-2fb6-4107-bdc4-7bf409cce918}"
     }
   },
-  "content_scripts": [{
-    "matches": ["*://*.rohlik.cz/*"],
-    "js": ["content.js"],
-    "run_at": "document_start"
-  }],
+  "content_scripts": [
+    {
+      "matches": ["https://www.rohlik.cz/*"],
+      "js": ["content.js"]
+    }
+  ],
   "background": {
     "scripts": ["background.js"]
   },
   "permissions": [
-    "storage"
-  ],
-  "host_permissions": [
-    "https://www.rohlik.cz/*"
-  ],
-  "web_accessible_resources": [{
-    "resources": ["config.json"],
-    "matches": ["https://www.rohlik.cz/*"]
-  }]
+    "storage",
+    "activeTab"
+  ]
 }

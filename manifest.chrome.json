@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Rohlik Enhanced",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "description": "Displays Nutri-Score for grocery products",
   "content_scripts": [{
     "matches": ["https://www.rohlik.cz/*"],
