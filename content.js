@@ -5,13 +5,25 @@ const storeName = "nutriScores";
 let db;
 
 const initDB = () => {
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
+    // Check if indexedDB is available
+    if (!window.indexedDB) {
+      console.debug("IndexedDB not available, using localStorage");
+      resolve();
+      return;
+    }
+
     const request = indexedDB.open(dbName, 1);
 
-    request.onerror = () => reject(request.error);
+    request.onerror = () => {
+      console.debug("IndexedDB failed to open, using localStorage");
+      resolve();
+    };
+
     request.onsuccess = () => {
+      console.debug("IndexedDB opened successfully");
       db = request.result;
-      resolve(db);
+      resolve();
     };
 
     request.onupgradeneeded = (event) => {
@@ -24,11 +36,14 @@ const initDB = () => {
 };
 
 // Initialize DB when script loads
-initDB().catch(console.error);
+initDB().catch(console.warn);
 
 async function fetchNutritionData(productId) {
   const url = `https://www.rohlik.cz/api/v1/products/${productId}/composition`;
   const response = await fetch(url);
+  if (!response.ok) {
+    return null;
+  }
   const data = await response.json();
 
   if (!data.nutritionalValues?.[0]?.values) {
@@ -56,22 +71,61 @@ async function fetchCategoryData(productId) {
   return data?.categories || [];
 }
 
+// Cache operations
+async function getCachedScore(productId) {
+  if (!db) {
+    const cached = localStorage.getItem(`${storeName}_${productId}`);
+    if (cached) {
+      console.debug("cache hit from localStorage");
+      const parsedCache = JSON.parse(cached);
+      return parsedCache?.score ?? null;
+    }
+    console.debug("cache miss from localStorage");
+    return null;
+  }
+
+  const cached = await new Promise((resolve) => {
+    const transaction = db.transaction(storeName, "readonly");
+    const store = transaction.objectStore(storeName);
+    const request = store.get(productId);
+
+    request.onsuccess = () => {
+      const result = request.result;
+      if (result) {
+        console.debug(`cache hit from IndexedDB for ${productId}`);
+        resolve(result.score);
+      } else {
+        console.debug(`cache miss from IndexedDB for ${productId}`);
+        resolve(undefined);
+      }
+    };
+    request.onerror = () => resolve(null);
+  });
+  return cached;
+}
+
+async function setCachedScore(productId, score) {
+  const cacheData = { id: productId, score, timestamp: Date.now() };
+
+  if (!db) {
+    localStorage.setItem(
+      `${storeName}_${productId}`,
+      JSON.stringify(cacheData)
+    );
+    return;
+  }
+
+  const transaction = db.transaction(storeName, "readwrite");
+  const store = transaction.objectStore(storeName);
+  store.put(cacheData);
+}
+
 async function fetchNutriScore(productId) {
   try {
     // Check cache first
-    if (db) {
-      const cached = await new Promise((resolve) => {
-        const transaction = db.transaction(storeName, "readonly");
-        const store = transaction.objectStore(storeName);
-        const request = store.get(productId);
-
-        request.onsuccess = () => resolve(request.result);
-        request.onerror = () => resolve(null);
-      });
-
-      if (cached || cached === null) {
-        return cached?.score ?? null;
-      }
+    const cachedScore = await getCachedScore(productId);
+    if (cachedScore !== undefined) {
+      return cachedScore;
     }
 
     const [data, categories] = await Promise.all([
@@ -79,7 +133,10 @@ async function fetchNutriScore(productId) {
       fetchCategoryData(productId),
     ]);
 
-    if (!data) return null;
+    if (!data) {
+      await setCachedScore(productId, null);
+      return null;
+    }
 
     // Determine product category flags based on category names
     const isCheese = categories.some((cat) =>
@@ -106,12 +163,8 @@ async function fetchNutriScore(productId) {
       fruitVegLegumesPercent: 0, // We don't have this data
     });
 
-    // Cache the result if we have a valid score
-    if (db) {
-      const transaction = db.transaction(storeName, "readwrite");
-      const store = transaction.objectStore(storeName);
-      store.put({ id: productId, score, timestamp: Date.now() });
-    }
+    // Cache the result
+    await setCachedScore(productId, score);
 
     return score;
   } catch (error) {
@@ -122,7 +175,7 @@ async function fetchNutriScore(productId) {
 
 function calculateNutriScore(nutritionData) {
   // Return null if sugars are nullish since we can't calculate accurate score
-  if (nutritionData.sugars == null) {
+  if (nutritionData.energyKJ == null) {
     return null;
   }
 
@@ -137,7 +190,6 @@ function calculateNutriScore(nutritionData) {
   };
 
   const score = calculateScore(nutrientValues);
-  console.log("Calculated score:", score);
   return calculateNutrientScore(scoreTable.nutriClass, score);
 }
 
@@ -411,17 +463,21 @@ function calculateScore(nutrientValues) {
 
 function calculateNutriScore2022({
   energyKJ, // in kJ per 100g
-  sugars, // in g per 100g
-  saturatedFats, // in g per 100g
-  salt, // in g per 100g
-  proteins, // in g per 100g
-  fiber, // in g per 100g
+  sugars = 0, // in g per 100g
+  saturatedFats = 0, // in g per 100g
+  salt = 0, // in g per 100g
+  proteins = 0, // in g per 100g
+  fiber = 0, // in g per 100g
   fruitVegLegumesPercent = 0, // percentage of fruits, vegetables, and legumes
   isRedMeat = false,
   isCheese = false,
   isBeverage = false,
   isFatsOils = false,
 }) {
+  if (!energyKJ) {
+    return null;
+  }
+
   // Helper function to calculate A points
   function calculateAPoints() {
     if (isFatsOils) {
