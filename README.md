@@ -2,15 +2,6 @@
 
 A browser extension that enhances the Rohlik.cz shopping experience by displaying Nutri-Score ratings for products.
 
-## Project Structure
-
-```
-rohlik-enhanced/
-├── manifest.json   # Extension configuration
-├── content.js      # Content script that runs on rohlik.cz
-└── background.js   # Background script for extension
-```
-
 ## Development Setup
 
 ### Firefox
