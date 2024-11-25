@@ -196,4 +196,20 @@ describe("calculateNutriScore", () => {
     });
     expect(score2022).toBe("D");
   });
+
+  it("correctly calculates Nutri-Score for whole-grain toast bread", () => {
+    const nutritionData = {
+      energyKJ: 1055,
+      fats: 4,
+      saturatedFats: 0.4,
+      carbs: 42,
+      sugars: 3.2,
+      proteins: 8.5,
+      salt: 1,
+      fiber: 6,
+    };
+
+    const score2022 = calculateNutriScore2022(nutritionData);
+    expect(score2022).toBe("C");
+  });
 });
