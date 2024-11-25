@@ -247,6 +247,46 @@ async function addNutriScores() {
   }
 }
 
+async function addProductDetailNutriScore() {
+  const productImage = document.querySelector('[data-gtm-item="product-image"]');
+  if (!productImage || productImage.hasAttribute("data-nutriscore-added") || 
+      productImage.querySelector(".nutri-score-container")) {
+    return;
+  }
+
+  // Mark as being processed immediately to prevent race conditions
+  productImage.setAttribute("data-nutriscore-added", "true");
+
+  // Extract product ID from URL
+  const productId = window.location.pathname.match(/\/(\d+)-/)?.[1];
+  
+  if (productId) {
+    try {
+      const score = await fetchNutriScore(productId);
+      if (!score) {
+        productImage.removeAttribute("data-nutriscore-added");
+        return;
+      }
+
+      const scoreElement = createNutriScore(score);
+      scoreElement.classList.add("nutri-score-container");
+      scoreElement.style.position = "absolute";
+      scoreElement.style.top = "8px";
+      scoreElement.style.left = "8px";
+      scoreElement.style.zIndex = "1";
+
+      // Double-check we haven't added a score while waiting for the fetch
+      if (!productImage.querySelector(".nutri-score-container")) {
+        productImage.style.position = "relative";
+        productImage.appendChild(scoreElement);
+      }
+    } catch (error) {
+      productImage.removeAttribute("data-nutriscore-added");
+      console.error("Error adding nutri-score for product detail:", productId, error);
+    }
+  }
+}
+
 function createNutriScore(score) {
   // Validate score
   if (!["A", "B", "C", "D", "E"].includes(score)) {
@@ -294,9 +334,6 @@ function createNutriScore(score) {
   return container;
 }
 
-// Initial run
-addNutriScores();
-
 // Debounce function to prevent too frequent updates
 function debounce(func, wait) {
   let timeout;
@@ -315,9 +352,31 @@ const debouncedAddNutriScores = debounce(addNutriScores, 100);
 
 // Watch for dynamic content changes
 const observer = new MutationObserver((mutations) => {
-  // Only run if we see new nodes added
-  if (mutations.some((mutation) => mutation.addedNodes.length > 0)) {
+  let shouldAddScores = false;
+  let shouldAddDetailScore = false;
+
+  for (const mutation of mutations) {
+    // Check if any added nodes contain product cards
+    if (mutation.addedNodes.length) {
+      for (const node of mutation.addedNodes) {
+        if (node.nodeType === Node.ELEMENT_NODE) {
+          if (node.querySelector('[data-test^="productCard-"]')) {
+            shouldAddScores = true;
+          }
+          if (node.querySelector('[data-gtm-item="product-image"]') || 
+              node.matches('[data-gtm-item="product-image"]')) {
+            shouldAddDetailScore = true;
+          }
+        }
+      }
+    }
+  }
+
+  if (shouldAddScores) {
     debouncedAddNutriScores();
+  }
+  if (shouldAddDetailScore) {
+    addProductDetailNutriScore();
   }
 });
 
@@ -576,3 +635,7 @@ function calculateNutriScore2022({
   if (finalScore <= 18) return "D";
   return "E";
 }
+
+// Initial run for both product cards and detail page
+addNutriScores();
+addProductDetailNutriScore();
