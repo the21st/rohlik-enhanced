@@ -76,11 +76,9 @@ async function getCachedScore(productId) {
   if (!db) {
     const cached = localStorage.getItem(`${storeName}_${productId}`);
     if (cached) {
-      console.debug("cache hit from localStorage");
       const parsedCache = JSON.parse(cached);
       return parsedCache?.score ?? null;
     }
-    console.debug("cache miss from localStorage");
     return null;
   }
 
@@ -92,10 +90,8 @@ async function getCachedScore(productId) {
     request.onsuccess = () => {
       const result = request.result;
       if (result) {
-        console.debug(`cache hit from IndexedDB for ${productId}`);
         resolve(result.score);
       } else {
-        console.debug(`cache miss from IndexedDB for ${productId}`);
         resolve(undefined);
       }
     };

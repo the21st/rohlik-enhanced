@@ -1,6 +1,5 @@
 {
   "name": "rohlik-enhanced",
-  "version": "1.0.0",
   "description": "Browser extension to display nutri-scores for grocery products",
   "private": true,
   "scripts": {
