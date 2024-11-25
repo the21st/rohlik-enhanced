@@ -115,7 +115,7 @@ async function fetchNutriScore(productId) {
 
     return score;
   } catch (error) {
-    console.error("Error fetching nutri-score:", error);
+    console.warn("Error fetching nutri-score:", error);
     return null;
   }
 }
