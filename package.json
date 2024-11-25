@@ -4,8 +4,8 @@
   "private": true,
   "scripts": {
     "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
-    "package:firefox": "cp manifest.firefox.json manifest.json && zip -r rohlik-enhanced-firefox.zip * -x \"*.DS_Store\"",
-    "package:chrome": "cp manifest.chrome.json manifest.json && zip -r rohlik-enhanced-chrome.zip * -x \"*.DS_Store\"",
+    "package:firefox": "cp manifest.firefox.json manifest.json && zip -r rohlik-enhanced-firefox.zip * -x \"*.DS_Store\" \"node_modules/*\"",
+    "package:chrome": "cp manifest.chrome.json manifest.json && zip -r rohlik-enhanced-chrome.zip * -x \"*.DS_Store\" \"node_modules/*\"",
     "package:all": "npm run package:firefox && npm run package:chrome"
   },
   "jest": {
@@ -15,8 +15,7 @@
       "^(\\.{1,2}/.*)\\.js$": "$1"
     }
   },
-  "dependencies": {
-  },
+  "dependencies": {},
   "devDependencies": {
     "@babel/core": "^7.26.0",
     "@babel/preset-env": "^7.26.0",
