@@ -130,6 +130,19 @@ async function fetchNutriScore(productId) {
       fetchCategoryData(productId),
     ]);
 
+    // Check for alcoholic beverages first. Those don't have a Nutri-Score
+    if (
+      categories?.some(
+        (cat) =>
+          cat.name.toLowerCase().includes("víno") ||
+          cat.name.toLowerCase().includes("piva") ||
+          cat.name.toLowerCase().includes("lihoviny")
+      )
+    ) {
+      await setCachedScore(productId, null);
+      return null;
+    }
+
     if (!data) {
       await setCachedScore(productId, null);
       return null;
