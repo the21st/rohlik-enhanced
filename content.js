@@ -249,9 +249,14 @@ async function addNutriScores() {
 }
 
 async function addProductDetailNutriScore() {
-  const productImage = document.querySelector('[data-gtm-item="product-image"]');
-  if (!productImage || productImage.hasAttribute("data-nutriscore-added") || 
-      productImage.querySelector(".nutri-score-container")) {
+  const productImage = document.querySelector(
+    '[data-gtm-item="product-image"]'
+  );
+  if (
+    !productImage ||
+    productImage.hasAttribute("data-nutriscore-added") ||
+    productImage.querySelector(".nutri-score-container")
+  ) {
     return;
   }
 
@@ -260,7 +265,7 @@ async function addProductDetailNutriScore() {
 
   // Extract product ID from URL
   const productId = window.location.pathname.match(/\/(\d+)-/)?.[1];
-  
+
   if (productId) {
     try {
       const score = await fetchNutriScore(productId);
@@ -283,7 +288,11 @@ async function addProductDetailNutriScore() {
       }
     } catch (error) {
       productImage.removeAttribute("data-nutriscore-added");
-      console.error("Error adding nutri-score for product detail:", productId, error);
+      console.error(
+        "Error adding nutri-score for product detail:",
+        productId,
+        error
+      );
     }
   }
 }
@@ -364,8 +373,10 @@ const observer = new MutationObserver((mutations) => {
           if (node.querySelector('[data-test^="productCard-"]')) {
             shouldAddScores = true;
           }
-          if (node.querySelector('[data-gtm-item="product-image"]') || 
-              node.matches('[data-gtm-item="product-image"]')) {
+          if (
+            node.querySelector('[data-gtm-item="product-image"]') ||
+            node.matches('[data-gtm-item="product-image"]')
+          ) {
             shouldAddDetailScore = true;
           }
         }
