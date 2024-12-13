@@ -1,6 +1,6 @@
 console.log("Rohlik Enhanced loaded");
 
-const VERSION = "v1";
+const VERSION = "v3";
 const dbName = `nutriScoreDB_${VERSION}`;
 const storeName = `nutriScores_${VERSION}`;
 let db;
@@ -160,8 +160,12 @@ async function fetchNutriScore(productId) {
     const isBeverage = categories.some((cat) =>
       cat.name.toLowerCase().includes("nápoje")
     );
-    const isFatsOils = categories.some((cat) =>
-      cat.name.toLowerCase().includes("oleje")
+    const isFatsOilsNutsOrSeeds = categories.some(
+      (cat) =>
+        cat.name.toLowerCase().includes("oleje") ||
+        cat.name.toLowerCase().includes("máslo, tuky a margaríny") ||
+        cat.name.toLowerCase().includes("ořechy") ||
+        cat.name.toLowerCase().includes("semínka")
     );
 
     const score = calculateNutriScore2022({
@@ -169,7 +173,7 @@ async function fetchNutriScore(productId) {
       isCheese,
       isRedMeat,
       isBeverage,
-      isFatsOils,
+      isFatsOilsNutsOrSeeds,
       fruitVegLegumesPercent: 0, // We don't have this data
     });
 
@@ -541,6 +545,12 @@ function calculateScore(nutrientValues) {
     : badScore - goodScore;
 }
 
+/**
+ * Source: https://docs.google.com/spreadsheets/d/1atzCN_lhovFwiL-YEP91Y2NviZuEyeCrKTtWH_aI9s0/edit?gid=392888576#gid=392888576
+ * TODO: beverages: sweeteners
+ * TODO: nuts and oils % content
+ * TODO: fruit & veg % content
+ */
 function calculateNutriScore2022({
   energyKJ, // in kJ per 100g
   sugars = 0, // in g per 100g
@@ -552,15 +562,15 @@ function calculateNutriScore2022({
   isRedMeat = false,
   isCheese = false,
   isBeverage = false,
-  isFatsOils = false,
+  isFatsOilsNutsOrSeeds = false,
 }) {
-  if (!energyKJ) {
+  if (!energyKJ || isBeverage || isFatsOilsNutsOrSeeds) {
     return null;
   }
 
   // Helper function to calculate A points
   function calculateAPoints() {
-    if (isFatsOils) {
+    if (isFatsOilsNutsOrSeeds) {
       return (
         (energyKJ > 1200 ? 10 : Math.floor(energyKJ / 120)) +
         (sugars > 34 ? 10 : Math.floor(sugars / 3.4)) +
@@ -637,7 +647,7 @@ function calculateNutriScore2022({
     return "E";
   }
 
-  if (isFatsOils) {
+  if (isFatsOilsNutsOrSeeds) {
     const finalScore =
       pointsA - Math.max(proteinPoints, fiberPoints + fruitVegLegumePoints);
 
