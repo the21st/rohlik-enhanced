@@ -12,5 +12,9 @@
   ],
   "host_permissions": [
     "https://www.rohlik.cz/*"
-  ]
+  ],
+  "icons": {
+    "48": "images/icon-48.png",
+    "128": "images/icon-128.png"
+  }
 }
