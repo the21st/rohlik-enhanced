@@ -246,19 +246,68 @@ async function addNutriScores() {
 }
 
 async function addProductDetailNutriScore() {
-  const productImage = document.querySelector(
-    '[data-gtm-item="product-image"]'
-  );
+  // Try multiple selectors to find product images
+  let productImage = document.querySelector('[data-gtm-item="product-image"]');
+
+  // If not found, try alternative selectors for different page layouts
+  if (!productImage) {
+    // Look for image containers that contain a picture element (common pattern)
+    const imageContainers = document.querySelectorAll("div");
+
+    for (const container of imageContainers) {
+      const picture = container.querySelector("picture");
+      const img = container.querySelector(
+        'img[src*="/images/grocery/products/"]'
+      );
+      if (
+        picture &&
+        img &&
+        container.children.length === 1 &&
+        container.children[0] === picture
+      ) {
+        productImage = container;
+        break;
+      }
+    }
+  }
+
+  if (!productImage) {
+    return;
+  }
+
+  // Find the actual image container - look for the best container for positioning
+  let imageContainer = productImage;
+
+  // Try to find a more appropriate container for positioning
+  // Look for the container that directly wraps the img/picture element
+  const imgElement = productImage.querySelector("img");
+  const pictureElement = productImage.querySelector("picture");
+
+  if (imgElement || pictureElement) {
+    // Find the immediate parent of the picture/img element
+    const mediaElement = pictureElement || imgElement;
+    const mediaParent = mediaElement.parentElement;
+
+    // Use the parent of the picture/img if it's a direct child of productImage
+    // This handles both structures: nested wrapper divs and direct children
+    if (mediaParent && mediaParent.parentElement === productImage) {
+      imageContainer = mediaParent;
+    }
+    // If the media element is a direct child of productImage, use productImage itself
+    else if (mediaElement.parentElement === productImage) {
+      imageContainer = productImage;
+    }
+  }
+
   if (
-    !productImage ||
-    productImage.hasAttribute("data-nutriscore-added") ||
-    productImage.querySelector(".nutri-score-container")
+    imageContainer.hasAttribute("data-nutriscore-added") ||
+    imageContainer.querySelector(".nutri-score-container")
   ) {
     return;
   }
 
   // Mark as being processed immediately to prevent race conditions
-  productImage.setAttribute("data-nutriscore-added", "true");
+  imageContainer.setAttribute("data-nutriscore-added", "true");
 
   // Extract product ID from URL
   const productId = window.location.pathname.match(/\/(\d+)-/)?.[1];
@@ -267,7 +316,7 @@ async function addProductDetailNutriScore() {
     try {
       const score = await fetchNutriScore(productId);
       if (!score) {
-        productImage.removeAttribute("data-nutriscore-added");
+        imageContainer.removeAttribute("data-nutriscore-added");
         return;
       }
 
@@ -279,12 +328,12 @@ async function addProductDetailNutriScore() {
       scoreElement.style.zIndex = "1";
 
       // Double-check we haven't added a score while waiting for the fetch
-      if (!productImage.querySelector(".nutri-score-container")) {
-        productImage.style.position = "relative";
-        productImage.appendChild(scoreElement);
+      if (!imageContainer.querySelector(".nutri-score-container")) {
+        imageContainer.style.position = "relative";
+        imageContainer.appendChild(scoreElement);
       }
     } catch (error) {
-      productImage.removeAttribute("data-nutriscore-added");
+      imageContainer.removeAttribute("data-nutriscore-added");
       console.error(
         "Error adding nutri-score for product detail:",
         productId,
