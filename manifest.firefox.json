@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Rohlik Enhanced",
   "description": "Displays Nutri-Score for grocery products on rohlik.cz",
-  "version": "1.6.1",
+  "version": "1.6.2",
   "browser_specific_settings": {
     "gecko": {
       "id": "{3d2f5053-2fb6-4107-bdc4-7bf409cce918}"
