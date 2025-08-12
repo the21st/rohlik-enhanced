@@ -4,13 +4,14 @@ const VERSION = "v5";
 const dbName = `nutriScoreDB_${VERSION}`;
 const storeName = `nutriScores_${VERSION}`;
 let db;
+let dbReadyPromise;
 
 const initDB = () => {
   return new Promise((resolve) => {
     // Check if indexedDB is available
     if (!window.indexedDB) {
       console.debug("IndexedDB not available, using localStorage");
-      resolve();
+      resolve(false);
       return;
     }
 
@@ -18,13 +19,13 @@ const initDB = () => {
 
     request.onerror = () => {
       console.debug("IndexedDB failed to open, using localStorage");
-      resolve();
+      resolve(false);
     };
 
     request.onsuccess = () => {
       console.debug("IndexedDB opened successfully");
       db = request.result;
-      resolve();
+      resolve(true);
     };
 
     request.onupgradeneeded = (event) => {
@@ -37,7 +38,10 @@ const initDB = () => {
 };
 
 // Initialize DB when script loads
-initDB().catch(console.warn);
+dbReadyPromise = initDB().catch((e) => {
+  console.warn(e);
+  return false;
+});
 
 async function fetchNutritionData(productId) {
   const url = `https://www.rohlik.cz/api/v1/products/${productId}/composition`;
@@ -74,13 +78,14 @@ async function fetchCategoryData(productId) {
 
 // Cache operations
 async function getCachedScore(productId) {
-  if (!db) {
+  const hasIDB = await dbReadyPromise;
+  if (!hasIDB || !db) {
     const cached = localStorage.getItem(`${storeName}_${productId}`);
     if (cached) {
       const parsedCache = JSON.parse(cached);
       return parsedCache?.score ?? null;
     }
-    return null;
+    return undefined;
   }
 
   const cached = await new Promise((resolve) => {
@@ -104,7 +109,8 @@ async function getCachedScore(productId) {
 async function setCachedScore(productId, score) {
   const cacheData = { id: productId, score, timestamp: Date.now() };
 
-  if (!db) {
+  const hasIDB = await dbReadyPromise;
+  if (!hasIDB || !db) {
     localStorage.setItem(
       `${storeName}_${productId}`,
       JSON.stringify(cacheData)
