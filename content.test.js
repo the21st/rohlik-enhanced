@@ -191,4 +191,20 @@ describe("calculateNutriScore", () => {
     const score = calculateNutriScore2022(nutritionData);
     expect(score).toBe("B");
   });
+
+  it("correctly calculates Nutri-Score for product that should be A but returns C - bug case", () => {
+    const nutritionData = {
+      energyKJ: 1730,
+      fats: 14.9,
+      saturatedFats: 2,
+      carbs: 49.3,
+      sugars: 3.5,
+      proteins: 13.8,
+      salt: 0.03,
+      fiber: 13.3,
+    };
+
+    const score = calculateNutriScore2022(nutritionData);
+    expect(score).toBe("A");
+  });
 });

@@ -661,8 +661,8 @@ function calculateNutriScore2022({
   const finalScore = isBeverage
     ? pointsA - pointsC
     : pointsA >= 11
-    ? pointsA - pointsC
-    : pointsA - (fiberPoints + fruitVegLegumePoints);
+    ? pointsA - (fiberPoints + fruitVegLegumePoints)
+    : pointsA - pointsC;
 
   if (finalScore <= 0) return "A";
   if (finalScore <= 2) return "B";
