@@ -429,10 +429,54 @@ function calculateNutriScore2022({
     }
 
     const energyPoints = energyKJ > 3350 ? 10 : Math.floor(energyKJ / 335);
-    const sugarPoints = sugars > 51 ? 10 : Math.floor(sugars / 3.4);
+    const sugarPoints =
+      sugars <= 4.5
+        ? 0
+        : sugars <= 9
+        ? 1
+        : sugars <= 13.5
+        ? 2
+        : sugars <= 18
+        ? 3
+        : sugars <= 22.5
+        ? 4
+        : sugars <= 27
+        ? 5
+        : sugars <= 31
+        ? 6
+        : sugars <= 36
+        ? 7
+        : sugars <= 40
+        ? 8
+        : sugars <= 45
+        ? 9
+        : 10;
     const saturatesPoints =
       saturatedFats > 10 ? 10 : Math.floor(saturatedFats / 1);
-    const saltPoints = salt > 4 ? 10 : Math.floor(salt / 0.2);
+    // Convert salt (g) to sodium (mg): salt × 400 = sodium
+    const sodium = salt * 400;
+    const saltPoints =
+      sodium <= 90
+        ? 0
+        : sodium <= 180
+        ? 1
+        : sodium <= 270
+        ? 2
+        : sodium <= 360
+        ? 3
+        : sodium <= 450
+        ? 4
+        : sodium <= 540
+        ? 5
+        : sodium <= 630
+        ? 6
+        : sodium <= 720
+        ? 7
+        : sodium <= 810
+        ? 8
+        : sodium <= 900
+        ? 9
+        : 10;
 
     return energyPoints + sugarPoints + saturatesPoints + saltPoints;
   }
@@ -440,30 +484,29 @@ function calculateNutriScore2022({
   // Helper function to calculate C points
   function calculateCPoints() {
     let proteinPoints = 0;
-    if (proteins > 17) proteinPoints = 7;
-    else if (proteins > 14) proteinPoints = 6;
-    else if (proteins > 12) proteinPoints = 5;
-    else if (proteins > 9.6) proteinPoints = 4;
-    else if (proteins > 7.2) proteinPoints = 3;
-    else if (proteins > 4.8) proteinPoints = 2;
-    else if (proteins > 2.4) proteinPoints = 1;
+    if (proteins <= 1.6) proteinPoints = 0;
+    else if (proteins <= 3.2) proteinPoints = 1;
+    else if (proteins <= 4.8) proteinPoints = 2;
+    else if (proteins <= 6.4) proteinPoints = 3;
+    else if (Math.round(proteins * 10) / 10 <= 8.0) proteinPoints = 4;
+    else proteinPoints = 5;
 
     if (isRedMeat) {
       proteinPoints = Math.min(proteinPoints, 2); // Red meat cap
     }
 
     const fiberPoints =
-      fiber > 7.4
-        ? 5
-        : fiber > 6.3
-        ? 4
-        : fiber > 5.2
-        ? 3
-        : fiber > 4.1
-        ? 2
-        : fiber > 3.0
+      fiber <= 0.9
+        ? 0
+        : fiber <= 1.9
         ? 1
-        : 0;
+        : fiber <= 2.8
+        ? 2
+        : fiber <= 3.7
+        ? 3
+        : fiber <= 4.7
+        ? 4
+        : 5;
 
     const fruitVegLegumePoints =
       fruitVegLegumesPercent > 80

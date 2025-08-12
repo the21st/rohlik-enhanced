@@ -1,4 +1,4 @@
-import { calculateNutriScore, calculateNutriScore2022 } from "./content.js";
+import { calculateNutriScore2022 } from "./content.js";
 
 describe("calculateNutriScore", () => {
   it("correctly calculates Nutri-Score for given nutritional values", () => {
@@ -81,7 +81,7 @@ describe("calculateNutriScore", () => {
     };
 
     const score = calculateNutriScore2022(nutritionData);
-    expect(score).toBe("C");
+    expect(score).toBe("B");
   });
 
   it("correctly calculates Nutri-Score for Milka chocolate", () => {
@@ -173,7 +173,7 @@ describe("calculateNutriScore", () => {
       ...nutritionData,
       isCheese: true,
     });
-    expect(score).toBe("D");
+    expect(score).toBe("C");
   });
 
   it("correctly calculates Nutri-Score for whole-grain toast bread", () => {
@@ -189,7 +189,7 @@ describe("calculateNutriScore", () => {
     };
 
     const score = calculateNutriScore2022(nutritionData);
-    expect(score).toBe("B");
+    expect(score).toBe("A");
   });
 
   it("correctly calculates Nutri-Score for product that should be A but returns C - bug case", () => {
@@ -202,6 +202,38 @@ describe("calculateNutriScore", () => {
       proteins: 13.8,
       salt: 0.03,
       fiber: 13.3,
+    };
+
+    const score = calculateNutriScore2022(nutritionData);
+    expect(score).toBe("A");
+  });
+
+  it("correctly calculates Nutri-Score for product with 1571kJ/370kCal - should be A not C", () => {
+    const nutritionData = {
+      energyKJ: 1571,
+      fats: 0.7,
+      saturatedFats: 0.2,
+      carbs: 80.7,
+      sugars: 11.9,
+      proteins: 8.7,
+      salt: 0.45,
+      fiber: 3.1,
+    };
+
+    const score = calculateNutriScore2022(nutritionData);
+    expect(score).toBe("A");
+  });
+
+  it("debug calculation for 1571kJ product", () => {
+    const nutritionData = {
+      energyKJ: 1571,
+      fats: 0.7,
+      saturatedFats: 0.2,
+      carbs: 80.7,
+      sugars: 11.9,
+      proteins: 8.7,
+      salt: 0.45,
+      fiber: 3.1,
     };
 
     const score = calculateNutriScore2022(nutritionData);
