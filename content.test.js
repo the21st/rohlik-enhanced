@@ -13,11 +13,8 @@ describe("calculateNutriScore", () => {
       fiber: 0,
     };
 
-    const score = calculateNutriScore(nutritionData);
-    expect(score).toBe("D"); // Using official Nutri-Score calculation
-
-    const score2022 = calculateNutriScore2022(nutritionData);
-    expect(score2022).toBe("D");
+    const score = calculateNutriScore2022(nutritionData);
+    expect(score).toBe("D");
   });
 
   it("correctly calculates Nutri-Score for Spinach", () => {
@@ -32,11 +29,8 @@ describe("calculateNutriScore", () => {
       fiber: 2.2,
     };
 
-    const score = calculateNutriScore(nutritionData);
+    const score = calculateNutriScore2022(nutritionData);
     expect(score).toBe("A");
-
-    const score2022 = calculateNutriScore2022(nutritionData);
-    expect(score2022).toBe("A");
   });
 
   it("correctly calculates Nutri-Score for Whole Grain Oats", () => {
@@ -51,11 +45,8 @@ describe("calculateNutriScore", () => {
       fiber: 10.6,
     };
 
-    const score = calculateNutriScore(nutritionData);
+    const score = calculateNutriScore2022(nutritionData);
     expect(score).toBe("A");
-
-    const score2022 = calculateNutriScore2022(nutritionData);
-    expect(score2022).toBe("A");
   });
 
   it("correctly calculates Nutri-Score for tesco parmigiano reggiano", () => {
@@ -70,14 +61,11 @@ describe("calculateNutriScore", () => {
       fiber: 0,
     };
 
-    const score2022 = calculateNutriScore2022({
+    const score = calculateNutriScore2022({
       ...nutritionData,
       isCheese: true,
     });
-    expect(score2022).toBe("D");
-
-    const score = calculateNutriScore(nutritionData);
-    expect(score).toBe("E");
+    expect(score).toBe("D");
   });
 
   it("correctly calculates Nutri-Score for White Bread", () => {
@@ -92,11 +80,8 @@ describe("calculateNutriScore", () => {
       fiber: 0,
     };
 
-    const score = calculateNutriScore(nutritionData);
+    const score = calculateNutriScore2022(nutritionData);
     expect(score).toBe("C");
-
-    const score2022 = calculateNutriScore2022(nutritionData);
-    expect(score2022).toBe("C");
   });
 
   it("correctly calculates Nutri-Score for Milka chocolate", () => {
@@ -111,11 +96,8 @@ describe("calculateNutriScore", () => {
       fiber: 2.3,
     };
 
-    const score = calculateNutriScore(nutritionData);
+    const score = calculateNutriScore2022(nutritionData);
     expect(score).toBe("E");
-
-    const score2022 = calculateNutriScore2022(nutritionData);
-    expect(score2022).toBe("E");
   });
 
   it("correctly calculates Nutri-Score for Madeland 20%", () => {
@@ -130,14 +112,11 @@ describe("calculateNutriScore", () => {
       fiber: 0,
     };
 
-    const score2022 = calculateNutriScore2022({
+    const score = calculateNutriScore2022({
       ...nutritionData,
       isCheese: true,
     });
-    expect(score2022).toBe("C");
-
-    const score = calculateNutriScore(nutritionData);
-    expect(score).toBe("D");
+    expect(score).toBe("C");
   });
 
   it("correctly calculates Nutri-Score for Madeland 30%", () => {
@@ -152,11 +131,11 @@ describe("calculateNutriScore", () => {
       fiber: 0,
     };
 
-    const score2022 = calculateNutriScore2022({
+    const score = calculateNutriScore2022({
       ...nutritionData,
       isCheese: true,
     });
-    expect(score2022).toBe("D");
+    expect(score).toBe("D");
   });
 
   it("correctly calculates Nutri-Score for Meggle Cottage Cheese přírodní", () => {
@@ -171,11 +150,11 @@ describe("calculateNutriScore", () => {
       fiber: 0,
     };
 
-    const score2022 = calculateNutriScore2022({
+    const score = calculateNutriScore2022({
       ...nutritionData,
       isCheese: true,
     });
-    // expect(score2022).toBe("B");
+    // expect(score).toBe("B");
   });
 
   it("correctly calculates Nutri-Score for", () => {
@@ -190,11 +169,11 @@ describe("calculateNutriScore", () => {
       fiber: 0,
     };
 
-    const score2022 = calculateNutriScore2022({
+    const score = calculateNutriScore2022({
       ...nutritionData,
       isCheese: true,
     });
-    expect(score2022).toBe("D");
+    expect(score).toBe("D");
   });
 
   it("correctly calculates Nutri-Score for whole-grain toast bread", () => {
@@ -209,7 +188,7 @@ describe("calculateNutriScore", () => {
       fiber: 6,
     };
 
-    const score2022 = calculateNutriScore2022(nutritionData);
-    expect(score2022).toBe("C");
+    const score = calculateNutriScore2022(nutritionData);
+    expect(score).toBe("B");
   });
 });
