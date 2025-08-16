@@ -648,7 +648,7 @@ function calculateNutriScore2022({
   return "E";
 }
 
-module.exports.calculateNutriScore2022 = calculateNutriScore2022;
+// module.exports.calculateNutriScore2022 = calculateNutriScore2022;
 
 // Initial run for both product cards and detail page
 addNutriScores();
