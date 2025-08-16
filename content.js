@@ -485,53 +485,81 @@ function calculateNutriScore2022({
 
     const energyPoints = energyKJ > 3350 ? 10 : Math.floor(energyKJ / 335);
     const sugarPoints =
-      sugars <= 4.5
+      sugars <= 3.4
         ? 0
-        : sugars <= 9
+        : sugars <= 6.8
         ? 1
-        : sugars <= 13.5
+        : sugars <= 10.0
         ? 2
-        : sugars <= 18
+        : sugars <= 14.0
         ? 3
-        : sugars <= 22.5
+        : sugars <= 17.0
         ? 4
-        : sugars <= 27
+        : sugars <= 20.0
         ? 5
-        : sugars <= 31
+        : sugars <= 24.0
         ? 6
-        : sugars <= 36
+        : sugars <= 27.0
         ? 7
-        : sugars <= 40
+        : sugars <= 31.0
         ? 8
-        : sugars <= 45
+        : sugars <= 34.0
         ? 9
-        : 10;
+        : sugars <= 37.0
+        ? 10
+        : sugars <= 41.0
+        ? 11
+        : sugars <= 44.0
+        ? 12
+        : sugars <= 48.0
+        ? 13
+        : sugars <= 51.0
+        ? 14
+        : 15;
     const saturatesPoints =
       saturatedFats > 10 ? 10 : Math.floor(saturatedFats / 1);
-    // Convert salt (g) to sodium (mg): salt × 400 = sodium
-    const sodium = salt * 400;
     const saltPoints =
-      sodium <= 90
+      salt <= 0.2
         ? 0
-        : sodium <= 180
+        : salt <= 0.4
         ? 1
-        : sodium <= 270
+        : salt <= 0.6
         ? 2
-        : sodium <= 360
+        : salt <= 0.8
         ? 3
-        : sodium <= 450
+        : salt <= 1.0
         ? 4
-        : sodium <= 540
+        : salt <= 1.2
         ? 5
-        : sodium <= 630
+        : salt <= 1.4
         ? 6
-        : sodium <= 720
+        : salt <= 1.6
         ? 7
-        : sodium <= 810
+        : salt <= 1.8
         ? 8
-        : sodium <= 900
+        : salt <= 2.0
         ? 9
-        : 10;
+        : salt <= 2.2
+        ? 10
+        : salt <= 2.4
+        ? 11
+        : salt <= 2.6
+        ? 12
+        : salt <= 2.8
+        ? 13
+        : salt <= 3.0
+        ? 14
+        : salt <= 3.2
+        ? 15
+        : salt <= 3.4
+        ? 16
+        : salt <= 3.6
+        ? 17
+        : salt <= 3.8
+        ? 18
+        : salt <= 4.0
+        ? 19
+        : 20;
 
     return energyPoints + sugarPoints + saturatesPoints + saltPoints;
   }
@@ -539,27 +567,29 @@ function calculateNutriScore2022({
   // Helper function to calculate C points
   function calculateCPoints() {
     let proteinPoints = 0;
-    if (proteins <= 1.6) proteinPoints = 0;
-    else if (proteins <= 3.2) proteinPoints = 1;
-    else if (proteins <= 4.8) proteinPoints = 2;
-    else if (proteins <= 6.4) proteinPoints = 3;
-    else if (Math.round(proteins * 10) / 10 <= 8.0) proteinPoints = 4;
-    else proteinPoints = 5;
+    if (proteins <= 2.4) proteinPoints = 0;
+    else if (proteins <= 4.8) proteinPoints = 1;
+    else if (proteins <= 7.2) proteinPoints = 2;
+    else if (proteins <= 9.6) proteinPoints = 3;
+    else if (proteins <= 12.0) proteinPoints = 4;
+    else if (proteins <= 14.0) proteinPoints = 5;
+    else if (proteins <= 17.0) proteinPoints = 6;
+    else proteinPoints = 7;
 
     if (isRedMeat) {
       proteinPoints = Math.min(proteinPoints, 2); // Red meat cap
     }
 
     const fiberPoints =
-      fiber <= 0.9
+      fiber <= 3.0
         ? 0
-        : fiber <= 1.9
+        : fiber <= 4.1
         ? 1
-        : fiber <= 2.8
+        : fiber <= 5.2
         ? 2
-        : fiber <= 3.7
+        : fiber <= 6.3
         ? 3
-        : fiber <= 4.7
+        : fiber <= 7.4
         ? 4
         : 5;
 
@@ -586,11 +616,11 @@ function calculateNutriScore2022({
 
   // Special scoring rules
   if (isCheese) {
-    const finalScore = pointsA - pointsC; // Cheese uses all C points
-    if (finalScore <= 0) return "A";
-    if (finalScore <= 2) return "B";
-    if (finalScore <= 10) return "C";
-    if (finalScore <= 18) return "D";
+    const finalScore = pointsA - pointsC;
+    if (finalScore < 1) return "A";
+    if (finalScore < 3) return "B";
+    if (finalScore < 11) return "C";
+    if (finalScore < 19) return "D";
     return "E";
   }
 
@@ -611,12 +641,14 @@ function calculateNutriScore2022({
     ? pointsA - (fiberPoints + fruitVegLegumePoints)
     : pointsA - pointsC;
 
-  if (finalScore <= 0) return "A";
-  if (finalScore <= 2) return "B";
-  if (finalScore <= 10) return "C";
-  if (finalScore <= 18) return "D";
+  if (finalScore < 1) return "A";
+  if (finalScore < 3) return "B";
+  if (finalScore < 11) return "C";
+  if (finalScore < 19) return "D";
   return "E";
 }
+
+module.exports.calculateNutriScore2022 = calculateNutriScore2022;
 
 // Initial run for both product cards and detail page
 addNutriScores();
