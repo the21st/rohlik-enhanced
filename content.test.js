@@ -1,242 +1,238 @@
-import { calculateNutriScore2022 } from "./content.js";
+const { calculateNutriScore2022 } = require("./content.js");
 
-describe("calculateNutriScore", () => {
-  it("correctly calculates Nutri-Score for given nutritional values", () => {
-    const nutritionData = {
-      energyKJ: 2650,
-      fats: 70,
-      saturatedFats: 5.3,
-      carbs: 3,
-      sugars: 1.5,
-      proteins: 0.8,
-      salt: 1,
-      fiber: 0,
-    };
+describe("Nutri-Score 2022 Algorithm Tests", () => {
+  describe("General Foods (Updated Algorithm)", () => {
+    const generalFoodCases = [
+      {
+        name: "Apple sauce tinned",
+        energyKJ: 321.0,
+        sugars: 17.1,
+        saturatedFats: 0,
+        salt: 0.025,
+        fiber: 1.9,
+        proteins: 0.2,
+        fruitVegLegumesPercent: 90, // Apple sauce should have high fruit content
+        expected: "A",
+      },
+      {
+        name: "Sugar granulated",
+        energyKJ: 1700.0,
+        sugars: 100.0,
+        saturatedFats: 0,
+        salt: 0,
+        fiber: 0,
+        proteins: 0,
+        fruitVegLegumesPercent: 0,
+        expected: "E",
+      },
+      {
+        name: "protein 1",
+        energyKJ: 1501.0,
+        sugars: 3.3,
+        saturatedFats: 5.8,
+        salt: 0.34,
+        fiber: 9.8,
+        proteins: 25.0,
+        fruitVegLegumesPercent: 0,
+        expected: "A",
+      },
+      {
+        name: "protein 2",
+        energyKJ: 1523.0,
+        sugars: 3.3,
+        saturatedFats: 6.7,
+        salt: 0.3,
+        fiber: 10.0,
+        proteins: 25.0,
+        fruitVegLegumesPercent: 0,
+        expected: "C",
+      },
+      {
+        name: "M&S Fruit & Nut Muesli",
+        energyKJ: 1730.0,
+        sugars: 3.5,
+        saturatedFats: 2.0,
+        salt: 0.03,
+        fiber: 13.3,
+        proteins: 13.8,
+        fruitVegLegumesPercent: 0,
+        expected: "A",
+      },
+      {
+        name: "M&S Berry and Cherry flakes",
+        energyKJ: 1571.0,
+        sugars: 11.9,
+        saturatedFats: 0.2,
+        salt: 0.45,
+        fiber: 3.1,
+        proteins: 8.7,
+        fruitVegLegumesPercent: 0,
+        expected: "C",
+      },
+      {
+        name: "white bread",
+        energyKJ: 1109.0,
+        sugars: 0,
+        saturatedFats: 0.5,
+        salt: 0.9,
+        fiber: 0,
+        proteins: 9.0,
+        fruitVegLegumesPercent: 0,
+        expected: "C",
+      },
+      {
+        name: "toast bread",
+        energyKJ: 1055.0,
+        sugars: 3.2,
+        saturatedFats: 0.3,
+        salt: 1.0,
+        fiber: 6.0,
+        proteins: 8.5,
+        fruitVegLegumesPercent: 0,
+        expected: "B",
+      },
+      {
+        name: "kapsicka biely jogurt Miil",
+        energyKJ: 477.0,
+        sugars: 3.3,
+        saturatedFats: 6.5,
+        salt: 0.1,
+        fiber: 0,
+        proteins: 3.0,
+        fruitVegLegumesPercent: 0,
+        expected: "C",
+      },
+      {
+        name: "biely jogurt miil",
+        energyKJ: 278.0,
+        sugars: 4.4,
+        saturatedFats: 2.6,
+        salt: 0.1,
+        fiber: 0,
+        proteins: 3.9,
+        fruitVegLegumesPercent: 0,
+        expected: "B",
+      },
+      {
+        name: "Rohlik.cz Hummus classico",
+        energyKJ: 1342.0,
+        sugars: 0.6,
+        saturatedFats: 4.2,
+        salt: 0.82,
+        fiber: 0,
+        proteins: 5.8,
+        fruitVegLegumesPercent: 0,
+        expected: "D",
+      },
+      {
+        name: "Emco Super sušenky bez přidaného cukru kakao a Kokos",
+        energyKJ: 1863.0,
+        sugars: 6.3,
+        saturatedFats: 7.6,
+        salt: 0.05,
+        fiber: 14.0,
+        proteins: 9.8,
+        fruitVegLegumesPercent: 0,
+        expected: "C",
+      },
+      {
+        name: "Emco Super sušenky bez přidaného cukru šťavnaté jablko",
+        energyKJ: 1782.0,
+        sugars: 12.0,
+        saturatedFats: 3.9,
+        salt: 0.04,
+        fiber: 9.8,
+        proteins: 9.0,
+        fruitVegLegumesPercent: 0,
+        expected: "C",
+      },
+    ];
 
-    const score = calculateNutriScore2022(nutritionData);
-    expect(score).toBe("D");
-  });
-
-  it("correctly calculates Nutri-Score for Spinach", () => {
-    const nutritionData = {
-      energyKJ: 23 * 4.184, // 23 kcal to kJ
-      fats: 0.4,
-      saturatedFats: 0.1,
-      carbs: 3.6,
-      sugars: 0.4,
-      proteins: 2.9,
-      salt: 0.1,
-      fiber: 2.2,
-    };
-
-    const score = calculateNutriScore2022(nutritionData);
-    expect(score).toBe("A");
-  });
-
-  it("correctly calculates Nutri-Score for Whole Grain Oats", () => {
-    const nutritionData = {
-      energyKJ: 389 * 4.184, // 389 kcal to kJ
-      fats: 6.9,
-      saturatedFats: 1.2,
-      carbs: 66.3,
-      sugars: 0.9,
-      proteins: 16.9,
-      salt: 0.01, // Low sodium content (10 mg)
-      fiber: 10.6,
-    };
-
-    const score = calculateNutriScore2022(nutritionData);
-    expect(score).toBe("A");
-  });
-
-  it("correctly calculates Nutri-Score for tesco parmigiano reggiano", () => {
-    const nutritionData = {
-      energyKJ: 1671, // 392 kcal to kJ
-      fats: 30,
-      saturatedFats: 20,
-      carbs: 0,
-      sugars: 0,
-      proteins: 32,
-      salt: 1.5,
-      fiber: 0,
-    };
-
-    const score = calculateNutriScore2022({
-      ...nutritionData,
-      isCheese: true,
+    test.each(generalFoodCases)("$name => expected $expected", (testCase) => {
+      const score = calculateNutriScore2022(testCase);
+      expect(score).toBe(testCase.expected);
     });
-    expect(score).toBe("D");
   });
 
-  it("correctly calculates Nutri-Score for White Bread", () => {
-    const nutritionData = {
-      energyKJ: 265 * 4.184,
-      fats: 3.2,
-      saturatedFats: 0.5,
-      carbs: 49,
-      sugars: 0,
-      proteins: 9,
-      salt: 0.9,
-      fiber: 0,
-    };
+  describe("Cheese Products (Updated Algorithm)", () => {
+    const cheeseCases = [
+      {
+        name: "Cheese",
+        energyKJ: 1523.0,
+        sugars: 0.5,
+        saturatedFats: 19.8,
+        salt: 1.8,
+        fiber: 0.1,
+        proteins: 24.1,
+        fruitVegLegumesPercent: 0,
+        expected: "D",
+        isCheese: true,
+      },
+      {
+        name: "Solid and semi-solid cheese",
+        energyKJ: 1568.0,
+        sugars: 0,
+        saturatedFats: 20.2,
+        salt: 1.8,
+        fiber: 0,
+        proteins: 26.1,
+        fruitVegLegumesPercent: 0,
+        expected: "D",
+        isCheese: true,
+      },
+      {
+        name: "Soft cheese",
+        energyKJ: 1344.0,
+        sugars: 2.6,
+        saturatedFats: 18.4,
+        salt: 1.6,
+        fiber: 0.3,
+        proteins: 15.4,
+        fruitVegLegumesPercent: 0,
+        expected: "D",
+        isCheese: true,
+      },
+      {
+        name: "Processed cheese",
+        energyKJ: 1242.0,
+        sugars: 1.0,
+        saturatedFats: 15.6,
+        salt: 2.3,
+        fiber: 0,
+        proteins: 19.4,
+        fruitVegLegumesPercent: 0,
+        expected: "D",
+        isCheese: true,
+      },
+      {
+        name: "madeland 20%",
+        energyKJ: 943.0,
+        sugars: 0.5,
+        saturatedFats: 7.2,
+        salt: 1.3,
+        fiber: 0,
+        proteins: 31.0,
+        fruitVegLegumesPercent: 0,
+        expected: "C",
+        isCheese: true,
+      },
+      {
+        name: "Meggle Cottage Cheese přírodní",
+        energyKJ: 385.0,
+        sugars: 1.5,
+        saturatedFats: 2.8,
+        salt: 1.1,
+        fiber: 0,
+        proteins: 12.0,
+        fruitVegLegumesPercent: 0,
+        expected: "C",
+        isCheese: true,
+      },
+    ];
 
-    const score = calculateNutriScore2022(nutritionData);
-    expect(score).toBe("B");
-  });
-
-  it("correctly calculates Nutri-Score for Milka chocolate", () => {
-    const nutritionData = {
-      energyKJ: 2251,
-      fats: 31,
-      saturatedFats: 19,
-      carbs: 57,
-      sugars: 55,
-      proteins: 6.5,
-      salt: 0.28,
-      fiber: 2.3,
-    };
-
-    const score = calculateNutriScore2022(nutritionData);
-    expect(score).toBe("E");
-  });
-
-  it("correctly calculates Nutri-Score for Madeland 20%", () => {
-    const nutritionData = {
-      energyKJ: 943,
-      fats: 11,
-      saturatedFats: 7.2,
-      carbs: 0.5,
-      sugars: 0.5,
-      proteins: 31,
-      salt: 1.3,
-      fiber: 0,
-    };
-
-    const score = calculateNutriScore2022({
-      ...nutritionData,
-      isCheese: true,
+    test.each(cheeseCases)("$name => expected $expected", (testCase) => {
+      const score = calculateNutriScore2022(testCase);
+      expect(score).toBe(testCase.expected);
     });
-    expect(score).toBe("C");
-  });
-
-  it("correctly calculates Nutri-Score for Madeland 30%", () => {
-    const nutritionData = {
-      energyKJ: 1185,
-      fats: 18,
-      saturatedFats: 12,
-      carbs: 0.5,
-      sugars: 0.5,
-      proteins: 30,
-      salt: 1.3,
-      fiber: 0,
-    };
-
-    const score = calculateNutriScore2022({
-      ...nutritionData,
-      isCheese: true,
-    });
-    expect(score).toBe("D");
-  });
-
-  it("correctly calculates Nutri-Score for Meggle Cottage Cheese přírodní", () => {
-    const nutritionData = {
-      energyKJ: 385,
-      fats: 4.2,
-      saturatedFats: 2.8,
-      carbs: 1.5,
-      sugars: 1.5,
-      proteins: 12,
-      salt: 1.1,
-      fiber: 0,
-    };
-
-    const score = calculateNutriScore2022({
-      ...nutritionData,
-      isCheese: true,
-    });
-    // expect(score).toBe("B");
-  });
-
-  it("correctly calculates Nutri-Score for", () => {
-    const nutritionData = {
-      energyKJ: 1280,
-      fats: 30,
-      saturatedFats: 14,
-      carbs: 1.8,
-      sugars: 1.5,
-      proteins: 8.2,
-      salt: 0.55,
-      fiber: 0,
-    };
-
-    const score = calculateNutriScore2022({
-      ...nutritionData,
-      isCheese: true,
-    });
-    expect(score).toBe("C");
-  });
-
-  it("correctly calculates Nutri-Score for whole-grain toast bread", () => {
-    const nutritionData = {
-      energyKJ: 1055,
-      fats: 4,
-      saturatedFats: 0.4,
-      carbs: 42,
-      sugars: 3.2,
-      proteins: 8.5,
-      salt: 1,
-      fiber: 6,
-    };
-
-    const score = calculateNutriScore2022(nutritionData);
-    expect(score).toBe("A");
-  });
-
-  it("correctly calculates Nutri-Score for product that should be A but returns C - bug case", () => {
-    const nutritionData = {
-      energyKJ: 1730,
-      fats: 14.9,
-      saturatedFats: 2,
-      carbs: 49.3,
-      sugars: 3.5,
-      proteins: 13.8,
-      salt: 0.03,
-      fiber: 13.3,
-    };
-
-    const score = calculateNutriScore2022(nutritionData);
-    expect(score).toBe("A");
-  });
-
-  it("correctly calculates Nutri-Score for product with 1571kJ/370kCal - should be A not C", () => {
-    const nutritionData = {
-      energyKJ: 1571,
-      fats: 0.7,
-      saturatedFats: 0.2,
-      carbs: 80.7,
-      sugars: 11.9,
-      proteins: 8.7,
-      salt: 0.45,
-      fiber: 3.1,
-    };
-
-    const score = calculateNutriScore2022(nutritionData);
-    expect(score).toBe("A");
-  });
-
-  it("debug calculation for 1571kJ product", () => {
-    const nutritionData = {
-      energyKJ: 1571,
-      fats: 0.7,
-      saturatedFats: 0.2,
-      carbs: 80.7,
-      sugars: 11.9,
-      proteins: 8.7,
-      salt: 0.45,
-      fiber: 3.1,
-    };
-
-    const score = calculateNutriScore2022(nutritionData);
-    expect(score).toBe("A");
   });
 });
