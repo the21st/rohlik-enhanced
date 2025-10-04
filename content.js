@@ -51,6 +51,10 @@ async function fetchNutritionData(productId) {
   }
   const data = await response.json();
 
+  return transformResponse(data);
+}
+
+function transformResponse(data) {
   if (!data.nutritionalValues?.[0]?.values) {
     return null;
   }
@@ -170,8 +174,8 @@ async function fetchNutriScore(productId) {
       (cat) =>
         cat.name.toLowerCase().includes("oleje") ||
         cat.name.toLowerCase().includes("máslo, tuky a margaríny") ||
-        cat.name.toLowerCase().includes("ořechy") ||
-        cat.name.toLowerCase().includes("semínka")
+        cat.name.toLowerCase().includes("semínka") ||
+        cat.name.toLowerCase() === "ořechy, semínka a sušené ovoce"
     );
 
     const score = calculateNutriScore2022({
@@ -649,6 +653,7 @@ function calculateNutriScore2022({
 }
 
 // module.exports.calculateNutriScore2022 = calculateNutriScore2022;
+// module.exports.transformResponse = transformResponse;
 
 // Initial run for both product cards and detail page
 addNutriScores();

@@ -1,6 +1,20 @@
-const { calculateNutriScore2022 } = require("./content.js");
+const { calculateNutriScore2022, transformResponse } = require("./content.js");
 
 describe("Nutri-Score 2022 Algorithm Tests", () => {
+  test("Bohemia Solene", async () => {
+    const score = calculateNutriScore2022({
+      energyKJ: 2295,
+      proteins: 1.4,
+      carbs: 58,
+      sugars: null,
+      fats: 34,
+      saturatedFats: 16.2,
+      fiber: 3.4,
+      salt: 2.9,
+    });
+    expect(score).toEqual("D");
+  });
+
   describe("General Foods (Updated Algorithm)", () => {
     const generalFoodCases = [
       {
