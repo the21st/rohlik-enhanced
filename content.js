@@ -1,8 +1,8 @@
 console.log("Rohlik Enhanced loaded");
 
-const VERSION = "v7";
+const VERSION = "v8";
 const dbName = `nutriScoreDB_${VERSION}`;
-const storeName = `nutriScores_${VERSION}`;
+const storeName = `nutriData_${VERSION}`;
 let db;
 let dbReadyPromise;
 
@@ -80,14 +80,13 @@ async function fetchCategoryData(productId) {
   return data?.categories || [];
 }
 
-// Cache operations
-async function getCachedScore(productId) {
+// Cache operations - stores nutrition data and category flags
+async function getCachedData(productId) {
   const hasIDB = await dbReadyPromise;
   if (!hasIDB || !db) {
     const cached = localStorage.getItem(`${storeName}_${productId}`);
     if (cached) {
-      const parsedCache = JSON.parse(cached);
-      return parsedCache?.score ?? null;
+      return JSON.parse(cached);
     }
     return undefined;
   }
@@ -98,20 +97,15 @@ async function getCachedScore(productId) {
     const request = store.get(productId);
 
     request.onsuccess = () => {
-      const result = request.result;
-      if (result) {
-        resolve(result.score);
-      } else {
-        resolve(undefined);
-      }
+      resolve(request.result);
     };
     request.onerror = () => resolve(null);
   });
   return cached;
 }
 
-async function setCachedScore(productId, score) {
-  const cacheData = { id: productId, score, timestamp: Date.now() };
+async function setCachedData(productId, nutritionData, categoryFlags) {
+  const cacheData = { id: productId, nutritionData, categoryFlags, timestamp: Date.now() };
 
   const hasIDB = await dbReadyPromise;
   if (!hasIDB || !db) {
@@ -130,9 +124,17 @@ async function setCachedScore(productId, score) {
 async function fetchNutriScore(productId) {
   try {
     // Check cache first
-    const cachedScore = await getCachedScore(productId);
-    if (cachedScore !== undefined) {
-      return cachedScore;
+    const cached = await getCachedData(productId);
+    if (cached !== undefined) {
+      if (!cached || !cached.nutritionData) {
+        return { score: null, nutritionData: null };
+      }
+      const score = calculateNutriScore2022({
+        ...cached.nutritionData,
+        ...cached.categoryFlags,
+        fruitVegLegumesPercent: 0,
+      });
+      return { score, nutritionData: cached.nutritionData };
     }
 
     const [data, categories] = await Promise.all([
@@ -141,59 +143,53 @@ async function fetchNutriScore(productId) {
     ]);
 
     // Check for alcoholic beverages first. Those don't have a Nutri-Score
-    if (
-      categories?.some(
-        (cat) =>
-          cat.name.toLowerCase().includes("víno") ||
-          cat.name.toLowerCase().includes("piva") ||
-          cat.name.toLowerCase().includes("lihoviny")
-      )
-    ) {
-      await setCachedScore(productId, null);
-      return null;
-    }
+    const isAlcohol = categories?.some(
+      (cat) =>
+        cat.name.toLowerCase().includes("víno") ||
+        cat.name.toLowerCase().includes("piva") ||
+        cat.name.toLowerCase().includes("lihoviny")
+    );
 
-    if (!data) {
-      await setCachedScore(productId, null);
-      return null;
+    if (isAlcohol || !data) {
+      await setCachedData(productId, null, null);
+      return { score: null, nutritionData: null };
     }
 
     // Determine product category flags based on category names
-    const isCheese = categories.some((cat) =>
-      cat.name.toLowerCase().includes("sýr")
-    );
-    const isRedMeat = categories.some(
-      (cat) =>
-        cat.name.toLowerCase().includes("hověz") ||
-        cat.name.toLowerCase().includes("vepřov")
-    );
-    const isBeverage = categories.some((cat) =>
-      cat.name.toLowerCase().includes("nápoje")
-    );
-    const isFatsOilsNutsOrSeeds = categories.some(
-      (cat) =>
-        cat.name.toLowerCase().includes("oleje") ||
-        cat.name.toLowerCase().includes("máslo, tuky a margaríny") ||
-        cat.name.toLowerCase().includes("semínka") ||
-        cat.name.toLowerCase() === "ořechy, semínka a sušené ovoce"
-    );
+    const categoryFlags = {
+      isCheese: categories.some((cat) =>
+        cat.name.toLowerCase().includes("sýr")
+      ),
+      isRedMeat: categories.some(
+        (cat) =>
+          cat.name.toLowerCase().includes("hověz") ||
+          cat.name.toLowerCase().includes("vepřov")
+      ),
+      isBeverage: categories.some((cat) =>
+        cat.name.toLowerCase().includes("nápoje")
+      ),
+      isFatsOilsNutsOrSeeds: categories.some(
+        (cat) =>
+          cat.name.toLowerCase().includes("oleje") ||
+          cat.name.toLowerCase().includes("máslo, tuky a margaríny") ||
+          cat.name.toLowerCase().includes("semínka") ||
+          cat.name.toLowerCase() === "ořechy, semínka a sušené ovoce"
+      ),
+    };
+
+    // Cache the nutrition data and category flags
+    await setCachedData(productId, data, categoryFlags);
 
     const score = calculateNutriScore2022({
       ...data,
-      isCheese,
-      isRedMeat,
-      isBeverage,
-      isFatsOilsNutsOrSeeds,
+      ...categoryFlags,
       fruitVegLegumesPercent: 0, // We don't have this data
     });
 
-    // Cache the result
-    await setCachedScore(productId, score);
-
-    return score;
+    return { score, nutritionData: data };
   } catch (error) {
     console.warn("Error fetching nutri-score:", error);
-    return null;
+    return { score: null, nutritionData: null };
   }
 }
 
@@ -219,14 +215,14 @@ async function addNutriScores() {
 
     if (productId) {
       try {
-        const score = await fetchNutriScore(productId);
+        const { score, nutritionData } = await fetchNutriScore(productId);
         if (!score) {
           // If score is null, remove the processing marker
           product.removeAttribute("data-nutriscore-added");
           continue;
         }
 
-        const scoreElement = createNutriScore(score);
+        const scoreElement = createNutriScore(score, nutritionData);
         scoreElement.classList.add("nutri-score-container"); // Add class for duplicate checking
 
         // Find the image container to insert the score
@@ -324,13 +320,13 @@ async function addProductDetailNutriScore() {
 
   if (productId) {
     try {
-      const score = await fetchNutriScore(productId);
+      const { score, nutritionData } = await fetchNutriScore(productId);
       if (!score) {
         imageContainer.removeAttribute("data-nutriscore-added");
         return;
       }
 
-      const scoreElement = createNutriScore(score);
+      const scoreElement = createNutriScore(score, nutritionData);
       scoreElement.classList.add("nutri-score-container");
       scoreElement.style.position = "absolute";
       scoreElement.style.top = "8px";
@@ -353,7 +349,7 @@ async function addProductDetailNutriScore() {
   }
 }
 
-function createNutriScore(score) {
+function createNutriScore(score, nutritionData) {
   // Validate score
   if (!["A", "B", "C", "D", "E"].includes(score)) {
     throw new Error("Score must be one of: A, B, C, D, E");
@@ -652,8 +648,9 @@ function calculateNutriScore2022({
   return "E";
 }
 
-// module.exports.calculateNutriScore2022 = calculateNutriScore2022;
-// module.exports.transformResponse = transformResponse;
+if (typeof module !== "undefined") {
+  module.exports = { calculateNutriScore2022, transformResponse };
+}
 
 // Initial run for both product cards and detail page
 addNutriScores();
