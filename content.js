@@ -349,6 +349,15 @@ async function addProductDetailNutriScore() {
   }
 }
 
+function calculateNutrientDensity(nutrientValue, energyKJ) {
+  if (nutrientValue == null || !energyKJ) {
+    return null;
+  }
+  const energyKcal = energyKJ / 4.184;
+  if (energyKcal <= 0) return null;
+  return (nutrientValue / energyKcal) * 100;
+}
+
 function createNutriScore(score, nutritionData) {
   // Validate score
   if (!["A", "B", "C", "D", "E"].includes(score)) {
@@ -364,18 +373,28 @@ function createNutriScore(score, nutritionData) {
     E: "#E63E11",
   };
 
+  // Text color - dark for light backgrounds (B, C)
+  const textColor = ["B", "C"].includes(score) ? "#333" : "white";
+
+  // Calculate nutrient densities (per 100 kcal)
+  const proteinDensity = calculateNutrientDensity(nutritionData?.proteins, nutritionData?.energyKJ);
+  const fiberDensity = calculateNutrientDensity(nutritionData?.fiber, nutritionData?.energyKJ);
+
   // Create container
   const container = document.createElement("div");
   container.style.cssText = `
       position: absolute;
       top: 8px;
       left: 8px;
+      width: 40px;
+      height: 40px;
       z-index: 10;
-      display: inline-flex;
-      flex-direction: column;
+      overflow: hidden;
+      transition: width 0.1s ease, height 0.1s ease;
+      cursor: pointer;
   `;
 
-  // Create score element
+  // Create score element (the circle)
   const scoreElement = document.createElement("div");
   scoreElement.style.cssText = `
       display: flex;
@@ -388,10 +407,100 @@ function createNutriScore(score, nutritionData) {
       font-weight: bold;
       font-size: 18px;
       border-radius: 50%;
+      transition: opacity 0.1s ease;
+      opacity: 1;
+  `;
+  scoreElement.textContent = score;
+
+  // Create expanded info panel (hidden by default)
+  const expandedPanel = document.createElement("div");
+  expandedPanel.style.cssText = `
+      position: absolute;
+      top: 0;
+      left: 0;
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      width: 100%;
+      height: 100%;
+      background-color: ${colors[score]}ee;
+      color: ${textColor};
+      font-weight: bold;
+      border-radius: 8px;
+      padding: 8px;
+      box-sizing: border-box;
+      opacity: 0;
+      transition: opacity 0.1s ease;
+      pointer-events: none;
   `;
 
-  scoreElement.textContent = score;
+  // Score display in expanded view
+  const expandedScore = document.createElement("div");
+  expandedScore.style.cssText = `
+      font-size: 28px;
+  `;
+  expandedScore.textContent = score;
+  expandedPanel.appendChild(expandedScore);
+
+  // Nutrient info container
+  const nutrientInfo = document.createElement("div");
+  nutrientInfo.style.cssText = `
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 4px;
+      font-size: 13px;
+      font-weight: normal;
+  `;
+
+  // Protein row
+  if (proteinDensity !== null) {
+    const proteinRow = document.createElement("div");
+    proteinRow.innerHTML = `<strong>${proteinDensity.toFixed(1)}g</strong> protein`;
+    nutrientInfo.appendChild(proteinRow);
+  }
+
+  // Fiber row
+  if (fiberDensity !== null) {
+    const fiberRow = document.createElement("div");
+    fiberRow.innerHTML = `<strong>${fiberDensity.toFixed(1)}g</strong> vláknina`;
+    nutrientInfo.appendChild(fiberRow);
+  }
+
+  // Unit label
+  if (proteinDensity !== null || fiberDensity !== null) {
+    const unitLabel = document.createElement("div");
+    unitLabel.style.cssText = `font-size: 11px; opacity: 0.8;`;
+    unitLabel.textContent = "per 100 kcal";
+    nutrientInfo.appendChild(unitLabel);
+
+    expandedPanel.appendChild(nutrientInfo);
+  }
+
   container.appendChild(scoreElement);
+  container.appendChild(expandedPanel);
+
+  // Hover handlers
+  container.addEventListener("mouseenter", () => {
+    const parent = container.parentElement;
+    if (parent) {
+      container.style.width = "calc(100% - 16px)";
+      container.style.height = "calc(50% - 8px)";
+      scoreElement.style.opacity = "0";
+      expandedPanel.style.opacity = "1";
+      expandedPanel.style.pointerEvents = "auto";
+    }
+  });
+
+  container.addEventListener("mouseleave", () => {
+    container.style.width = "40px";
+    container.style.height = "40px";
+    scoreElement.style.opacity = "1";
+    expandedPanel.style.opacity = "0";
+    expandedPanel.style.pointerEvents = "none";
+  });
 
   return container;
 }
