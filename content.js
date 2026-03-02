@@ -61,7 +61,7 @@ function transformResponse(data) {
 
   const values = data.nutritionalValues[0].values;
 
-  return {
+  const result = {
     energyKJ: values.energyKJ?.amount ?? null,
     proteins: values.protein?.amount ?? null,
     carbs: values.carbohydrates?.amount ?? null,
@@ -71,6 +71,14 @@ function transformResponse(data) {
     fiber: values.fiber?.amount ?? null,
     salt: values.salt?.amount ?? null,
   };
+
+  // If more than 1 nutritional value is missing, data is too incomplete for scoring
+  const nullCount = Object.values(result).filter((v) => v === null).length;
+  if (nullCount > 1) {
+    return null;
+  }
+
+  return result;
 }
 
 async function fetchCategoryData(productId) {
@@ -566,11 +574,11 @@ observer.observe(document.body, {
  */
 function calculateNutriScore2022({
   energyKJ, // in kJ per 100g
-  sugars = 0, // in g per 100g
-  saturatedFats = 0, // in g per 100g
-  salt = 0, // in g per 100g
-  proteins = 0, // in g per 100g
-  fiber = 0, // in g per 100g
+  sugars: rawSugars = 0, // in g per 100g
+  saturatedFats: rawSaturatedFats = 0, // in g per 100g
+  salt: rawSalt = 0, // in g per 100g
+  proteins: rawProteins = 0, // in g per 100g
+  fiber: rawFiber = 0, // in g per 100g
   fruitVegLegumesPercent = 0, // percentage of fruits, vegetables, and legumes
   isRedMeat = false,
   isCheese = false,
@@ -580,6 +588,13 @@ function calculateNutriScore2022({
   if (!energyKJ || isBeverage || isFatsOilsNutsOrSeeds) {
     return null;
   }
+
+  // Coerce nulls to 0 (null can come from missing API data)
+  const sugars = rawSugars ?? 0;
+  const saturatedFats = rawSaturatedFats ?? 0;
+  const salt = rawSalt ?? 0;
+  const proteins = rawProteins ?? 0;
+  const fiber = rawFiber ?? 0;
 
   // Helper function to calculate A points
   function calculateAPoints() {

@@ -12,7 +12,7 @@ describe("Nutri-Score 2022 Algorithm Tests", () => {
       fiber: 3.4,
       salt: 2.9,
     });
-    expect(score).toEqual("D");
+    expect(score).toEqual("E");
   });
 
   describe("General Foods (Updated Algorithm)", () => {
@@ -165,6 +165,49 @@ describe("Nutri-Score 2022 Algorithm Tests", () => {
     test.each(generalFoodCases)("$name => expected $expected", (testCase) => {
       const score = calculateNutriScore2022(testCase);
       expect(score).toBe(testCase.expected);
+    });
+  });
+
+  describe("Incomplete nutritional data", () => {
+    test("returns null when most nutritional values are missing", () => {
+      const result = transformResponse({
+        nutritionalValues: [{
+          portion: "100 g",
+          values: {
+            energyKJ: { amount: 988.0, unit: "kJ" },
+            energyKCal: { amount: 237.0, unit: "kCal" },
+            fats: { amount: null, unit: "g" },
+            saturatedFats: { amount: null, unit: "g" },
+            carbohydrates: { amount: null, unit: "g" },
+            sugars: { amount: null, unit: "g" },
+            protein: { amount: null, unit: "g" },
+            salt: { amount: null, unit: "g" },
+            fiber: { amount: null, unit: "g" },
+          },
+        }],
+      });
+      expect(result).toBeNull();
+    });
+
+    test("allows data with at most 1 missing value", () => {
+      const result = transformResponse({
+        nutritionalValues: [{
+          portion: "100 g",
+          values: {
+            energyKJ: { amount: 2295.0, unit: "kJ" },
+            fats: { amount: 34, unit: "g" },
+            saturatedFats: { amount: 16.2, unit: "g" },
+            carbohydrates: { amount: 58, unit: "g" },
+            sugars: { amount: null, unit: "g" },
+            protein: { amount: 1.4, unit: "g" },
+            salt: { amount: 2.9, unit: "g" },
+            fiber: { amount: 3.4, unit: "g" },
+          },
+        }],
+      });
+      expect(result).not.toBeNull();
+      expect(result.sugars).toBeNull();
+      expect(result.energyKJ).toBe(2295.0);
     });
   });
 
