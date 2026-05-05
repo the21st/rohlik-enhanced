@@ -1,6 +1,6 @@
 console.log("Rohlik Enhanced loaded");
 
-const VERSION = "v8";
+const VERSION = "v9";
 const dbName = `nutriScoreDB_${VERSION}`;
 const storeName = `nutriData_${VERSION}`;
 let db;
