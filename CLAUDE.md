@@ -21,6 +21,13 @@ npm run package:chrome     # Package for Chrome
 npm run package:all        # Package for both browsers
 ```
 
+### Publishing to Firefox Add-ons (AMO)
+Requires `.env` file with `JWT_ISSUER` and `JWT_SECRET` from https://addons.mozilla.org/en-US/developers/addon/api/key/
+```bash
+source .env && npx web-ext sign --source-dir . --api-key="$JWT_ISSUER" --api-secret="$JWT_SECRET" --channel=listed
+```
+Make sure `manifest.json` is a copy of `manifest.firefox.json` before running.
+
 ### Development Setup
 For Firefox:
 1. `cp manifest.firefox.json manifest.json`
@@ -56,7 +63,7 @@ The extension implements the 2022 Nutri-Score algorithm with special handling fo
 - **Alcoholic beverages**: No score displayed
 - **Cheese products**: Uses modified scoring rules (`isCheese: true`)
 - **Red meat**: Protein score capping
-- **Beverages**: No scores shown (`isBeverage: true`) 
+- **Beverages**: No scores shown (`isBeverage: true`), except "Mléko a mléčné nápoje" (dairy drinks) which are scored
 - **Fats/oils/nuts**: No scores shown (`isFatsOilsNutsOrSeeds: true`)
 
 Category detection is done via Czech category names in API responses.
