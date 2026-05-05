@@ -176,7 +176,7 @@ async function fetchNutriScore(productId) {
       isBeverage: categories.some(
         (cat) =>
           cat.name.toLowerCase().includes("nápoje") &&
-          !cat.name.toLowerCase().includes("mléčné nápoje")
+          !cat.name.toLowerCase().includes("mléčn")
       ),
       isFatsOilsNutsOrSeeds: categories.some(
         (cat) =>
