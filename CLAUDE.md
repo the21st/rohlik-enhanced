@@ -63,10 +63,12 @@ The extension implements the 2022 Nutri-Score algorithm with special handling fo
 - **Alcoholic beverages**: No score displayed
 - **Cheese products**: Uses modified scoring rules (`isCheese: true`)
 - **Red meat**: Protein score capping
-- **Beverages**: No scores shown (`isBeverage: true`), except "Mléko a mléčné nápoje" (dairy drinks) which are scored
+- **Beverages**: No scores shown (`isBeverage: true`), except dairy drinks (categories containing "mléčn") which are scored
 - **Fats/oils/nuts**: No scores shown (`isFatsOilsNutsOrSeeds: true`)
 
 Category detection is done via Czech category names in API responses.
+
+**Cache versioning**: When changing the scoring algorithm or category detection logic, bump the `VERSION` constant at the top of `content.js` (e.g. `"v9"` → `"v10"`). This creates a new IndexedDB/localStorage namespace, forcing fresh lookups for all products instead of serving stale cached results.
 
 ### Performance Optimizations
 
