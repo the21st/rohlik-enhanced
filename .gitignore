@@ -5,3 +5,5 @@ dist/
 .DS_Store
 *.zip
 manifest.json
+web-ext-artifacts/
+.amo-upload-uuid
