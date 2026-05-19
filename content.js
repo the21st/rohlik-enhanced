@@ -433,14 +433,14 @@ function createNutriScore(score, nutritionData) {
       flex-direction: row;
       align-items: center;
       justify-content: center;
-      gap: 12px;
+      gap: 8px;
       width: 100%;
       height: 100%;
       background-color: ${colors[score]}ee;
       color: ${textColor};
       font-weight: bold;
       border-radius: 8px;
-      padding: 8px;
+      padding: 6px;
       box-sizing: border-box;
       opacity: 0;
       transition: opacity 0.1s ease;
@@ -461,36 +461,33 @@ function createNutriScore(score, nutritionData) {
       display: flex;
       flex-direction: column;
       align-items: flex-start;
-      gap: 4px;
-      font-size: 13px;
+      gap: 1px;
+      font-size: 11px;
       font-weight: normal;
+      line-height: 1.3;
   `;
 
-  // Protein row
   if (proteinDensity !== null) {
     const proteinRow = document.createElement("div");
     proteinRow.innerHTML = `<strong>${proteinDensity.toFixed(1)}g</strong> protein`;
     nutrientInfo.appendChild(proteinRow);
   }
 
-  // Fiber row
   if (fiberDensity !== null) {
     const fiberRow = document.createElement("div");
     fiberRow.innerHTML = `<strong>${fiberDensity.toFixed(1)}g</strong> vláknina`;
     nutrientInfo.appendChild(fiberRow);
   }
 
-  // Saturated fat row
   if (satFatDensity !== null) {
     const satFatRow = document.createElement("div");
     satFatRow.innerHTML = `<strong>${satFatDensity.toFixed(1)}g</strong> nas. tuky`;
     nutrientInfo.appendChild(satFatRow);
   }
 
-  // Unit label
   if (proteinDensity !== null || fiberDensity !== null || satFatDensity !== null) {
     const unitLabel = document.createElement("div");
-    unitLabel.style.cssText = `font-size: 11px; opacity: 0.8;`;
+    unitLabel.style.cssText = `font-size: 9px; opacity: 0.7;`;
     unitLabel.textContent = "per 100 kcal";
     nutrientInfo.appendChild(unitLabel);
 
