@@ -389,6 +389,7 @@ function createNutriScore(score, nutritionData) {
   // Calculate nutrient densities (per 100 kcal)
   const proteinDensity = calculateNutrientDensity(nutritionData?.proteins, nutritionData?.energyKJ);
   const fiberDensity = calculateNutrientDensity(nutritionData?.fiber, nutritionData?.energyKJ);
+  const satFatDensity = calculateNutrientDensity(nutritionData?.saturatedFats, nutritionData?.energyKJ);
 
   // Create container
   const container = document.createElement("div");
@@ -479,8 +480,15 @@ function createNutriScore(score, nutritionData) {
     nutrientInfo.appendChild(fiberRow);
   }
 
+  // Saturated fat row
+  if (satFatDensity !== null) {
+    const satFatRow = document.createElement("div");
+    satFatRow.innerHTML = `<strong>${satFatDensity.toFixed(1)}g</strong> nas. tuky`;
+    nutrientInfo.appendChild(satFatRow);
+  }
+
   // Unit label
-  if (proteinDensity !== null || fiberDensity !== null) {
+  if (proteinDensity !== null || fiberDensity !== null || satFatDensity !== null) {
     const unitLabel = document.createElement("div");
     unitLabel.style.cssText = `font-size: 11px; opacity: 0.8;`;
     unitLabel.textContent = "per 100 kcal";
