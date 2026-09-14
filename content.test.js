@@ -150,6 +150,18 @@ describe("Nutri-Score 2022 Algorithm Tests", () => {
         expected: "C",
       },
       {
+        // Rohlik product 1412595 - pufovaná špalda s medem (cereals)
+        name: "Pufovaná špalda s medem",
+        energyKJ: 1656.0,
+        sugars: 23.0,
+        saturatedFats: 0.4,
+        salt: 0.01,
+        fiber: 6.7,
+        proteins: 9.7,
+        fruitVegLegumesPercent: 0,
+        expected: "B",
+      },
+      {
         name: "Emco Super sušenky bez přidaného cukru šťavnaté jablko",
         energyKJ: 1782.0,
         sugars: 12.0,

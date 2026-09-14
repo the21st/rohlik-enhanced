@@ -261,8 +261,73 @@ async function addNutriScores() {
   }
 }
 
+// Search suggestion rows ("whisperer") use their own, much smaller layout
+async function addWhispererNutriScores() {
+  const rows = document.querySelectorAll(
+    '[data-test="whisperer-product-wrapper"]'
+  );
+
+  for (const row of rows) {
+    if (
+      row.hasAttribute("data-nutriscore-added") ||
+      row.querySelector(".nutri-score-container")
+    ) {
+      continue;
+    }
+
+    row.setAttribute("data-nutriscore-added", "true");
+
+    const link = row.querySelector('a[href*="-"]');
+    const productId = link?.getAttribute("href")?.match(/\/(\d+)-/)?.[1];
+    const image = row.querySelector('[data-test="whisperer-product-image"]');
+    const imageContainer = image?.parentElement;
+
+    if (!productId || !imageContainer) {
+      row.removeAttribute("data-nutriscore-added");
+      continue;
+    }
+
+    try {
+      const { score, nutritionData } = await fetchNutriScore(productId);
+      if (!score) {
+        row.removeAttribute("data-nutriscore-added");
+        continue;
+      }
+
+      const scoreElement = createNutriScore(score, nutritionData, {
+        size: 24,
+        showDetails: false,
+      });
+      scoreElement.classList.add("nutri-score-container");
+      scoreElement.style.top = "0px";
+      scoreElement.style.left = "0px";
+
+      if (!row.querySelector(".nutri-score-container")) {
+        imageContainer.style.position = "relative";
+        imageContainer.appendChild(scoreElement);
+      }
+    } catch (error) {
+      row.removeAttribute("data-nutriscore-added");
+      console.error(
+        "Error adding nutri-score for search suggestion:",
+        productId,
+        error
+      );
+    }
+  }
+}
+
 async function addProductDetailNutriScore() {
-  // Try multiple selectors to find product images
+  // Current layout: the gallery wrapper holds the main product image
+  const gallery = document.querySelector(
+    '[data-test="product-detail-gallery"]'
+  );
+  if (gallery) {
+    await addDetailScoreToContainer(gallery);
+    return;
+  }
+
+  // Try multiple selectors to find product images (legacy layouts)
   let productImage = document.querySelector('[data-gtm-item="product-image"]');
 
   // If not found, try alternative selectors for different page layouts
@@ -315,6 +380,10 @@ async function addProductDetailNutriScore() {
     }
   }
 
+  await addDetailScoreToContainer(imageContainer);
+}
+
+async function addDetailScoreToContainer(imageContainer) {
   if (
     imageContainer.hasAttribute("data-nutriscore-added") ||
     imageContainer.querySelector(".nutri-score-container")
@@ -339,9 +408,11 @@ async function addProductDetailNutriScore() {
       const scoreElement = createNutriScore(score, nutritionData);
       scoreElement.classList.add("nutri-score-container");
       scoreElement.style.position = "absolute";
-      scoreElement.style.top = "8px";
+      // Bottom-left: the top of the gallery is used by sale/BIO badges
+      scoreElement.style.top = "auto";
+      scoreElement.style.bottom = "8px";
       scoreElement.style.left = "8px";
-      scoreElement.style.zIndex = "1";
+      scoreElement.style.zIndex = "11";
 
       // Double-check we haven't added a score while waiting for the fetch
       if (!imageContainer.querySelector(".nutri-score-container")) {
@@ -368,7 +439,9 @@ function calculateNutrientDensity(nutrientValue, energyKJ) {
   return (nutrientValue / energyKcal) * 100;
 }
 
-function createNutriScore(score, nutritionData) {
+function createNutriScore(score, nutritionData, options = {}) {
+  const { size = 40, showDetails = true } = options;
+
   // Validate score
   if (!["A", "B", "C", "D", "E"].includes(score)) {
     throw new Error("Score must be one of: A, B, C, D, E");
@@ -397,8 +470,8 @@ function createNutriScore(score, nutritionData) {
       position: absolute;
       top: 8px;
       left: 8px;
-      width: 40px;
-      height: 40px;
+      width: ${size}px;
+      height: ${size}px;
       z-index: 10;
       overflow: hidden;
       transition: width 0.1s ease, height 0.1s ease;
@@ -411,12 +484,12 @@ function createNutriScore(score, nutritionData) {
       display: flex;
       align-items: center;
       justify-content: center;
-      width: 40px;
-      height: 40px;
+      width: ${size}px;
+      height: ${size}px;
       background-color: ${colors[score]};
       color: white;
       font-weight: bold;
-      font-size: 18px;
+      font-size: ${Math.round(size * 0.45)}px;
       border-radius: 50%;
       transition: opacity 0.1s ease;
       opacity: 1;
@@ -485,7 +558,10 @@ function createNutriScore(score, nutritionData) {
     nutrientInfo.appendChild(satFatRow);
   }
 
-  if (proteinDensity !== null || fiberDensity !== null || satFatDensity !== null) {
+  if (
+    showDetails &&
+    (proteinDensity !== null || fiberDensity !== null || satFatDensity !== null)
+  ) {
     const unitLabel = document.createElement("div");
     unitLabel.style.cssText = `font-size: 9px; opacity: 0.7;`;
     unitLabel.textContent = "per 100 kcal";
@@ -497,7 +573,11 @@ function createNutriScore(score, nutritionData) {
   container.appendChild(scoreElement);
   container.appendChild(expandedPanel);
 
-  // Hover handlers
+  // Hover handlers (skipped for compact badges, e.g. search suggestions)
+  if (!showDetails) {
+    return container;
+  }
+
   container.addEventListener("mouseenter", () => {
     const parent = container.parentElement;
     if (parent) {
@@ -510,8 +590,8 @@ function createNutriScore(score, nutritionData) {
   });
 
   container.addEventListener("mouseleave", () => {
-    container.style.width = "40px";
-    container.style.height = "40px";
+    container.style.width = `${size}px`;
+    container.style.height = `${size}px`;
     scoreElement.style.opacity = "1";
     expandedPanel.style.opacity = "0";
     expandedPanel.style.pointerEvents = "none";
@@ -536,10 +616,17 @@ function debounce(func, wait) {
 // Debounced version of addNutriScores
 const debouncedAddNutriScores = debounce(addNutriScores, 100);
 
+// Debounced version of addWhispererNutriScores
+const debouncedAddWhispererNutriScores = debounce(
+  addWhispererNutriScores,
+  100
+);
+
 // Watch for dynamic content changes
 const observer = new MutationObserver((mutations) => {
   let shouldAddScores = false;
   let shouldAddDetailScore = false;
+  let shouldAddWhispererScores = false;
 
   for (const mutation of mutations) {
     // Check if any added nodes contain product cards
@@ -550,10 +637,20 @@ const observer = new MutationObserver((mutations) => {
             shouldAddScores = true;
           }
           if (
-            node.querySelector('[data-gtm-item="product-image"]') ||
-            node.matches('[data-gtm-item="product-image"]')
+            node.querySelector(
+              '[data-gtm-item="product-image"], [data-test="product-detail-gallery"]'
+            ) ||
+            node.matches(
+              '[data-gtm-item="product-image"], [data-test="product-detail-gallery"]'
+            )
           ) {
             shouldAddDetailScore = true;
+          }
+          if (
+            node.querySelector('[data-test="whisperer-product-wrapper"]') ||
+            node.matches('[data-test="whisperer-product-wrapper"]')
+          ) {
+            shouldAddWhispererScores = true;
           }
         }
       }
@@ -565,6 +662,9 @@ const observer = new MutationObserver((mutations) => {
   }
   if (shouldAddDetailScore) {
     addProductDetailNutriScore();
+  }
+  if (shouldAddWhispererScores) {
+    debouncedAddWhispererNutriScores();
   }
 });
 
@@ -786,3 +886,4 @@ if (typeof module !== "undefined") {
 // Initial run for both product cards and detail page
 addNutriScores();
 addProductDetailNutriScore();
+addWhispererNutriScores();
