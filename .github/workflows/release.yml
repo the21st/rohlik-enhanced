@@ -63,7 +63,10 @@ jobs:
           cp manifest.firefox.json manifest.json
           npx --yes web-ext sign \
             --source-dir . \
-            --ignore-files node_modules "*.zip" \
+            --ignore-files node_modules "*.zip" "*.xlsx" "*.test.js" \
+              "CLAUDE.md" "README.md" "package.json" "package-lock.json" \
+              "manifest.firefox.json" "manifest.chrome.json" \
+              "web-ext-artifacts/**" \
             --api-key="$JWT_ISSUER" \
             --api-secret="$JWT_SECRET" \
             --channel=listed
