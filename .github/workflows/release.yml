@@ -71,21 +71,14 @@ jobs:
             --api-secret="$JWT_SECRET" \
             --channel=listed
 
-      - name: Publish to the Chrome Web Store
+      # Chrome stays manual on purpose: its API needs Google Cloud OAuth
+      # credentials, which is not worth the upkeep at this release rate.
+      # Upload rohlik-enhanced-chrome.zip from the release page to
+      # https://chrome.google.com/webstore/devconsole
+      - name: Remind about the Chrome upload
         if: ${{ !inputs.dry_run }}
-        env:
-          EXTENSION_ID: ${{ secrets.CHROME_EXTENSION_ID }}
-          CLIENT_ID: ${{ secrets.CHROME_CLIENT_ID }}
-          CLIENT_SECRET: ${{ secrets.CHROME_CLIENT_SECRET }}
-          REFRESH_TOKEN: ${{ secrets.CHROME_REFRESH_TOKEN }}
         run: |
-          npx --yes chrome-webstore-upload-cli@3 upload \
-            --source rohlik-enhanced-chrome.zip \
-            --extension-id "$EXTENSION_ID" \
-            --client-id "$CLIENT_ID" \
-            --client-secret "$CLIENT_SECRET" \
-            --refresh-token "$REFRESH_TOKEN" \
-            --auto-publish
+          echo "::notice::Chrome is manual. Upload rohlik-enhanced-chrome.zip from this release to the Web Store dashboard."
 
       - name: Create the GitHub release
         if: ${{ startsWith(github.ref, 'refs/tags/v') && !inputs.dry_run }}
